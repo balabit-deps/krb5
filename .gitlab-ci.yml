@@ -1,0 +1,48 @@
+# default: snapshot build on test ZBS branch
+# set RELEASE_VERSION when creating a release, for example: RELEASE_VERSION=0.0.4
+
+stages:
+  - validate-vars
+  - build-libkrb5
+
+variables:
+  GIT_DEPTH: 1
+
+
+validate-vars:
+  stage: validate-vars
+  image: "docker.balabit/syslog-ng/glib-glibc2.11-builder:v3"
+  script:
+    - if [ -z "$ZBS_BRANCH" -a "$SNAPSHOT" = "yes" ]; then exit 1; fi
+    - if [ "$SNAPSHOT" = "no" -a -z "$RELEASE_VERSION" ]; then exit 1; fi;
+    - env
+  variables:
+    GIT_STRATEGY: none
+
+
+build-libkrb5:
+  stage: build-libkrb5
+  image: "docker.balabit/syslog-ng/glib-glibc2.11-builder:v3"
+  before_script:
+    - export VERSION=1.17.2-1.syslogng70
+    - export DIST=linux-glibc2.11
+    - export ARCH=amd64
+  script:
+    - git clone https://git.balabit/syslog-ng/pe-builder-image.git
+    - if [ ! -z "$RELEASE_VERSION" ]; then export SNAPSHOT=no ; fi
+    - if [ "$SNAPSHOT" = "yes" ]; then export SNAPSHOT_VERSION=$(date +'%Y%m%d+%H%M'); export VERSION="${VERSION}+${SNAPSHOT_VERSION}"; fi
+    - if [ "$SNAPSHOT" = "no" ]; then export VERSION="$RELEASE_VERSION"; fi
+    - if [ "$SNAPSHOT" = "yes" ]; then export FULL_ZBS_BRANCH="syslog-ng-pe-7.0-$ZBS_BRANCH"; else export FULL_ZBS_BRANCH="syslog-ng-7.0"; fi
+
+    - ./release.sh
+
+    - mkdir zbs_files && cp tgz2build/*.files zbs_files/
+    - pe-builder-image/scripts/prepare-binaries.sh libkrb5
+    - pe-builder-image/scripts/add-binaries.sh libkrb5
+    - rm -rf $DEST_DIR
+  artifacts:
+    expire_in: "2 weeks"
+    when: always
+    paths:
+      - artifacts
+      - pe-builder-image/ci-data.env

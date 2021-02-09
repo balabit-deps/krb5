@@ -1,0 +1,39 @@
+#!/usr/local/bin/make -f                                                                                                                                           
+STAMPDIR=tgz2build/stamps
+
+CFLAGS=-O2
+CONFIGURE_OPTS := --prefix $(ZBS_PREFIX) 
+CONFIGURE_CMD = ./configure $(CONFIGURE_OPTS)
+LD_LIB =
+
+
+all: binary
+
+binary: $(STAMPDIR)/stamp-setup $(STAMPDIR)/stamp-configure $(STAMPDIR)/stamp-build $(STAMPDIR)/stamp-install
+
+setup:  $(STAMPDIR)/stamp-setup
+$(STAMPDIR)/stamp-setup:
+	mkdir tgz2build/stamps || true
+	touch $@
+
+configure: $(STAMPDIR)/stamp-configure
+$(STAMPDIR)/stamp-configure: $(STAMPDIR)/stamp-setup
+	CFLAGS="$(CFLAGS) -g" $(SHELL) $(CONFIGURE_CMD)
+	touch $@
+
+
+build:  $(STAMPDIR)/stamp-build
+$(STAMPDIR)/stamp-build: $(STAMPDIR)/stamp-configure 
+	$(LD_LIB) $(MAKE) V=1
+	touch $@
+install: $(STAMPDIR)/stamp-install
+$(STAMPDIR)/stamp-install: $(STAMPDIR)/stamp-build
+	rm -rf $(ZBS_STAGE_DIR) || true
+	$(MAKE) install DESTDIR=$(ZBS_STAGE_DIR)
+	touch $@
+
+clean:
+	rm -rf tgz2build/stamps || true
+	rm -rf tgz2build/staging || true
+	$(MAKE) clean
+	

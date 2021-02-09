@@ -1,0 +1,3 @@
+opt/syslog-ng/lib/*.s*
+opt/syslog-ng/lib/krb5/*
+opt/syslog-ng/lib/*.a
