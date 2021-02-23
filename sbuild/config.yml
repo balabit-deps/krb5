@@ -1,0 +1,5 @@
+name: librdkafka
+builder:
+  name: Krb5Builder
+platforms:
+  - linux-glibc2.11/amd64
