@@ -6,12 +6,13 @@ stages:
   - build-libkrb5
 
 variables:
+  DOCKER_IMAGE_VERSION: "v5"
   GIT_DEPTH: 1
 
 
 validate-vars:
   stage: validate-vars
-  image: "docker.balabit/syslog-ng/glib-glibc2.11-builder:v3"
+  image: "docker.balabit/syslog-ng/glib-glibc2.11-builder:${DOCKER_IMAGE_VERSION}"
   script:
     - if [ -z "$ZBS_BRANCH" -a "$SNAPSHOT" = "yes" ]; then exit 1; fi
     - if [ "$SNAPSHOT" = "no" -a -z "$RELEASE_VERSION" ]; then exit 1; fi;
@@ -22,7 +23,7 @@ validate-vars:
 
 build-libkrb5:
   stage: build-libkrb5
-  image: "docker.balabit/syslog-ng/glib-glibc2.11-builder:v3"
+  image: "docker.balabit/syslog-ng/glib-glibc2.11-builder:${DOCKER_IMAGE_VERSION}"
   before_script:
     - export VERSION=1.17.2-1.syslogng70
     - export DIST=linux-glibc2.11
