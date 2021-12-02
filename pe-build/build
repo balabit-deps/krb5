@@ -1,0 +1,20 @@
+source="libkrb5"
+version=1.17.2-pe-1
+dependencies=(
+  'libssl' 'libssl-dev'
+  'zlib' 'zlib-dev'
+)
+
+bootstrap() {
+  autoreconf -i ${src_dir}/src
+}
+
+build() {
+  cd "${build_dir}"
+  ${src_dir}/src/configure --prefix="${prefix}"
+  make all
+}
+
+install() {
+  make -C "${build_dir}" DESTDIR="${dest_dir}" install
+}
